@@ -1,0 +1,14 @@
+# IDE files (the ones causing you trouble)
+.idea/
+*.iml
+*.iws
+*.xml
+
+# Python files
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Environment secrets
+.env
