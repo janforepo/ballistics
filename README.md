@@ -18,7 +18,6 @@ When you choose a weapon in the dropdown-list there appears a third line of boxe
 but with a green title. Pre-defined weapons have more precise data based on tables which vary with speed,
 and it is even more variables. These results are more precise than the blue ones, but not by so much.
 
-###### An error
-When you simulate trajectories and then try to do it again,
-all output will equal the grey line on the graph. You have co click on the "Clear All" button.
-I am presently working on that.
+##### Coming soon (sort of)
+At the very bottom of the code, there are some todo´s waiting. It is mostly concerning visual
+stuff and the last smoothing up stage of the program. I will work on these anon.

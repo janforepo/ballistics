@@ -70,7 +70,8 @@ def get_value(entry, default, set_if_empty=True):
     except ValueError:
         if set_if_empty:
             entry.delete(0, tk.END)
-            entry.insert(0, f"{default:.2f}")
+            # Use str(default) to keep all the decimal places
+            entry.insert(0, str(default))
         return default
 
 def to_canvas(x, y, canvas_width, canvas_height, x_scale, y_scale):
@@ -109,7 +110,7 @@ def simulate():
 
     # --- Get inputs with fallbacks ---
     v0 = get_value(entry_v0, preset.get("v0", random.uniform(100, 1000)))
-    angle_deg = get_value(entry_angle, random.uniform(0, 85))
+    angle_deg = get_value(entry_angle, random.randint(5, 85))
     y0 = get_value(entry_y0, 0)
     g = get_value(entry_g, 9.81)
 
@@ -207,19 +208,28 @@ def simulate():
         x_prev, y_prev = x, y
 
         while y >= 0:
+            # 1. ALWAYS calculate current velocity first
+            v = math.sqrt(vx ** 2 + vy ** 2)
+
+            # 2. Assign the coefficient safely
             if v > 412:
                 tC_d = C_d_sup
-            elif v >= 274 and v <= 412:
+            elif 274 <= v <= 412:
                 tC_d = C_d_trans
             else:
                 tC_d = C_d_sub
 
-            v = math.sqrt(vx ** 2 + vy ** 2)
-            print(f"tC_d: {tC_d}")
-            F_drag = 0.5 * tC_d * rho * A * v ** 2
-            ax = -F_drag * (vx / v) / m
-            ay = -g - F_drag * (vy / v) / m
+            # 3. Calculate physics
+            F_drag = 0.5 * tC_d * rho * A * (v ** 2)
 
+            # Prevent division by zero if it stops completely
+            if v > 0:
+                ax = -F_drag * (vx / v) / m
+                ay = -g - F_drag * (vy / v) / m
+            else:
+                ax, ay = 0, -g
+
+            # 4. Integrate
             vx += ax * DT
             vy += ay * DT
             x += vx * DT
@@ -227,10 +237,12 @@ def simulate():
             t += DT
             h_max = max(h_max, y)
 
+            # 5. Draw
             x1, y1 = to_canvas(x_prev, y_prev, canvas_width, canvas_height, x_scale, y_scale)
             x2, y2 = to_canvas(x, y, canvas_width, canvas_height, x_scale, y_scale)
             canvas.create_line(x1, y1, x2, y2, fill="green")
             x_prev, y_prev = x, y
+
             print(f"Y: {y}")
 
         R_air_Three, T_air_Three, H_air_Three = x, t, h_max
@@ -348,3 +360,11 @@ tk.Button(root, text="Clear All", command=clear_all).pack(pady=5)
 tk.Button(root, text="Simulate Trajectories", command=simulate).pack(pady=10)
 
 root.mainloop()
+
+
+
+
+# todo Fix y0 error max_t may be wrong - check
+# todo Print values to the boxes ere the simulation is triggered (on choosing of dropdown)
+# todo Must update r before simulate, if changed manually may cause trouble
+# todo Add input box variable for meters/px - make it adjustable
